@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+env/
+
+# ฐานข้อมูล (ไม่ต้อง push ขึ้น GitHub เพราะเป็นข้อมูลส่วนตัวของแต่ละเครื่อง)
+database/*.db
+
+# รูปที่ผู้ใช้อัปโหลด (ไม่ต้อง push เพราะเป็นข้อมูลส่วนตัว)
+static/uploads/*
+!static/uploads/.gitkeep
+
+# ไฟล์ระบบ
+.DS_Store
+Thumbs.db
+
+# ค่า config ที่มีรหัสผ่าน Wi-Fi จริง (สำคัญมาก! อย่า push ไฟล์นี้ขึ้น public repo)
+pico/config.py

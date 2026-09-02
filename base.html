@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Smart Pill Reminder{% endblock %}</title>
+
+<!-- Tailwind CSS (CDN) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- ฟอนต์ Kanit อ่านภาษาไทยสวย -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- ไอคอน -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { kanit: ['Kanit', 'sans-serif'] },
+        colors: {
+          brand: {
+            50:  '#f0fdf9',
+            100: '#ccfbef',
+            400: '#2dd4bf',
+            500: '#14b8a6',
+            600: '#0d9488',
+            700: '#0f766e',
+          },
+        },
+      },
+    },
+  }
+</script>
+</head>
+<body class="font-kanit bg-gradient-to-br from-slate-50 via-brand-50 to-slate-100 min-h-screen text-slate-800">
+
+<nav class="bg-white/80 backdrop-blur border-b border-slate-200 sticky top-0 z-30">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-brand-500 flex items-center justify-center text-white text-xl shadow-lg shadow-brand-500/30">
+        <i class="fa-solid fa-pills"></i>
+      </div>
+      <div>
+        <p class="font-semibold leading-tight">Smart Pill Reminder</p>
+        <p class="text-xs text-slate-400 leading-tight">ระบบแจ้งเตือนการทานยาอัจฉริยะ</p>
+      </div>
+    </div>
+    <a href="/api/trigger-times" target="_blank"
+       class="hidden sm:flex items-center gap-2 text-xs text-slate-500 hover:text-brand-600 transition">
+      <i class="fa-solid fa-code"></i> /api/trigger-times
+    </a>
+  </div>
+</nav>
+
+<main class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="mb-6 space-y-2">
+        {% for category, message in messages %}
+          <div class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium shadow-sm
+                      {% if category == 'error' %} bg-rose-50 text-rose-700 border border-rose-200
+                      {% else %} bg-brand-50 text-brand-700 border border-brand-200 {% endif %}">
+            <i class="fa-solid {% if category == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="text-center text-xs text-slate-400 py-8">
+  Smart Pill Reminder · Web Server (Flask) ⇄ Raspberry Pi Pico W (MicroPython)
+</footer>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

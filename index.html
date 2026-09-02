@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · Smart Pill Reminder{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+  <!-- ================= ฟอร์มเพิ่มยา ================= -->
+  <section class="lg:col-span-2">
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sticky top-24">
+      <div class="flex items-center gap-2 mb-5">
+        <div class="w-9 h-9 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center">
+          <i class="fa-solid fa-plus"></i>
+        </div>
+        <h2 class="font-semibold text-lg">เพิ่มรายการยาใหม่</h2>
+      </div>
+
+      <form action="{{ url_for('add_medicine') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1.5">ชื่อยา</label>
+          <input type="text" name="name" required placeholder="เช่น พาราเซตามอล 500mg"
+                 class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1.5">ช่วงเวลาทานยา / มื้ออาหาร</label>
+          <select name="meal_timing" required
+                  class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition bg-white">
+            <option value="" disabled selected>เลือกช่วงเวลา...</option>
+            {% for option in meal_options %}
+              <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-1.5">เวลาที่ต้องทานยาจริง</label>
+            <input type="time" name="actual_time" required
+                   class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-600 mb-1.5">แจ้งเตือนล่วงหน้า (นาที)</label>
+            <input type="number" name="advance_minutes" min="0" value="0"
+                   class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-slate-600 mb-1.5">รูปภาพซองยา / เม็ดยา (ไม่บังคับ)</label>
+          <label for="image-input"
+                 class="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-300 rounded-xl py-6 cursor-pointer hover:border-brand-400 hover:bg-brand-50/50 transition text-slate-400">
+            <img id="preview-img" class="hidden max-h-28 rounded-lg object-cover" />
+            <i id="upload-icon" class="fa-solid fa-image text-2xl"></i>
+            <span id="upload-text" class="text-xs">คลิกเพื่อเลือกรูปภาพ</span>
+          </label>
+          <input id="image-input" type="file" name="image" accept="image/*" class="hidden">
+        </div>
+
+        <button type="submit"
+                class="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-3 rounded-xl transition shadow-lg shadow-brand-500/25 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-floppy-disk"></i> บันทึกรายการยา
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ================= Dashboard รายการยา ================= -->
+  <section class="lg:col-span-3">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="font-semibold text-lg flex items-center gap-2">
+        <i class="fa-solid fa-table-list text-brand-600"></i>
+        ตารางยาทั้งหมด
+        <span class="text-xs font-normal text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{{ medicines|length }} รายการ</span>
+      </h2>
+    </div>
+
+    {% if medicines|length == 0 %}
+      <div class="bg-white rounded-3xl border border-dashed border-slate-300 p-12 text-center text-slate-400">
+        <i class="fa-solid fa-capsules text-4xl mb-3"></i>
+        <p>ยังไม่มีรายการยา ลองเพิ่มรายการแรกทางฟอร์มด้านซ้ายดูสิ</p>
+      </div>
+    {% endif %}
+
+    <div class="grid sm:grid-cols-2 gap-4">
+      {% for med in medicines %}
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden group hover:shadow-md transition
+                  {% if not med.is_active %}opacity-50{% endif %}">
+        <div class="h-32 bg-slate-100 flex items-center justify-center overflow-hidden">
+          {% if med.image_filename %}
+            <img src="{{ url_for('static', filename='uploads/' ~ med.image_filename) }}"
+                 class="w-full h-full object-cover" alt="{{ med.name }}">
+          {% else %}
+            <i class="fa-solid fa-pills text-4xl text-slate-300"></i>
+          {% endif %}
+        </div>
+
+        <div class="p-4">
+          <div class="flex items-start justify-between gap-2">
+            <h3 class="font-semibold text-slate-800 leading-snug">{{ med.name }}</h3>
+            <span class="shrink-0 text-[11px] font-medium px-2 py-1 rounded-full bg-brand-50 text-brand-600 border border-brand-100">
+              {{ med.meal_timing }}
+            </span>
+          </div>
+
+          <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+            <div class="bg-slate-50 rounded-lg px-3 py-2">
+              <p class="text-slate-400">เวลาทานจริง</p>
+              <p class="font-semibold text-slate-700">{{ med.actual_time }}</p>
+            </div>
+            <div class="bg-slate-50 rounded-lg px-3 py-2">
+              <p class="text-slate-400">แจ้งล่วงหน้า</p>
+              <p class="font-semibold text-slate-700">{{ med.advance_minutes }} นาที</p>
+            </div>
+          </div>
+
+          <div class="mt-2 flex items-center gap-2 bg-amber-50 border border-amber-100 text-amber-700 rounded-lg px-3 py-2 text-xs font-medium">
+            <i class="fa-solid fa-bell"></i>
+            แจ้งเตือนจริงเวลา <span class="font-bold">{{ med.trigger_time }}</span>
+            {% if not med.is_active %}<span class="ml-auto text-slate-400 font-normal">(ปิดอยู่)</span>{% endif %}
+          </div>
+
+          <div class="mt-3 flex items-center gap-2">
+            <form action="{{ url_for('toggle_medicine', med_id=med.id) }}" method="POST" class="flex-1">
+              <button type="submit"
+                      class="w-full text-xs font-medium py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition flex items-center justify-center gap-1.5">
+                <i class="fa-solid {% if med.is_active %}fa-toggle-on text-brand-600{% else %}fa-toggle-off{% endif %}"></i>
+                {{ 'ปิดแจ้งเตือน' if med.is_active else 'เปิดแจ้งเตือน' }}
+              </button>
+            </form>
+            <form action="{{ url_for('delete_medicine', med_id=med.id) }}" method="POST"
+                  onsubmit="return confirm('ยืนยันลบรายการยา &quot;{{ med.name }}&quot; ?');">
+              <button type="submit"
+                      class="text-xs font-medium py-2 px-3 rounded-lg border border-rose-100 text-rose-500 hover:bg-rose-50 transition">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}
